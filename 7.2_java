@@ -1,0 +1,91 @@
+import java.sql.*;
+import java.util.Scanner;
+
+public class ProductCRUD {
+    static final String URL = "jdbc:mysql://localhost:3306/testdb";
+    static final String USER = "root";
+    static final String PASS = "root";
+
+    public static void main(String[] args) {
+        try (Connection con = DriverManager.getConnection(URL, USER, PASS);
+             Scanner sc = new Scanner(System.in)) {
+            con.setAutoCommit(false);
+            while (true) {
+                System.out.println("\n1.Insert\n2.Display\n3.Update\n4.Delete\n5.Exit");
+                int ch = sc.nextInt();
+                switch (ch) {
+                    case 1:
+                        System.out.print("Enter Product ID: ");
+                        int id = sc.nextInt();
+                        sc.nextLine();
+                        System.out.print("Enter Product Name: ");
+                        String name = sc.nextLine();
+                        System.out.print("Enter Price: ");
+                        double price = sc.nextDouble();
+                        System.out.print("Enter Quantity: ");
+                        int qty = sc.nextInt();
+                        PreparedStatement ps1 = con.prepareStatement("INSERT INTO Product VALUES(?,?,?,?)");
+                        ps1.setInt(1, id);
+                        ps1.setString(2, name);
+                        ps1.setDouble(3, price);
+                        ps1.setInt(4, qty);
+                        ps1.executeUpdate();
+                        con.commit();
+                        System.out.println("Inserted Successfully");
+                        break;
+                    case 2:
+                        PreparedStatement ps2 = con.prepareStatement("SELECT * FROM Product");
+                        ResultSet rs = ps2.executeQuery();
+                        while (rs.next()) {
+                            System.out.println(rs.getInt(1) + " " + rs.getString(2) + " " +
+                                    rs.getDouble(3) + " " + rs.getInt(4));
+                        }
+                        break;
+                    case 3:
+                        System.out.print("Enter Product ID to Update: ");
+                        int uid = sc.nextInt();
+                        sc.nextLine();
+                        System.out.print("Enter New Name: ");
+                        String uname = sc.nextLine();
+                        System.out.print("Enter New Price: ");
+                        double uprice = sc.nextDouble();
+                        System.out.print("Enter New Quantity: ");
+                        int uqty = sc.nextInt();
+                        PreparedStatement ps3 = con.prepareStatement("UPDATE Product SET ProductName=?, Price=?, Quantity=? WHERE ProductID=?");
+                        ps3.setString(1, uname);
+                        ps3.setDouble(2, uprice);
+                        ps3.setInt(3, uqty);
+                        ps3.setInt(4, uid);
+                        int rows = ps3.executeUpdate();
+                        if (rows > 0) {
+                            con.commit();
+                            System.out.println("Updated Successfully");
+                        } else {
+                            con.rollback();
+                            System.out.println("No Product Found");
+                        }
+                        break;
+                    case 4:
+                        System.out.print("Enter Product ID to Delete: ");
+                        int did = sc.nextInt();
+                        PreparedStatement ps4 = con.prepareStatement("DELETE FROM Product WHERE ProductID=?");
+                        ps4.setInt(1, did);
+                        int del = ps4.executeUpdate();
+                        if (del > 0) {
+                            con.commit();
+                            System.out.println("Deleted Successfully");
+                        } else {
+                            con.rollback();
+                            System.out.println("No Product Found");
+                        }
+                        break;
+                    case 5:
+                        con.close();
+                        System.exit(0);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
